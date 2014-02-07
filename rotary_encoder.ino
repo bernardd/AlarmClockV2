@@ -10,7 +10,6 @@
  * - None, yet.
  */
 
-byte rotaryEncoderInitialized = false;
 int8_t inProgress = 0;
 
 uint8_t rotaryEncoderValue = DEFAULT_LCD_BACKLIGHT;
@@ -23,13 +22,9 @@ void rotaryEncoderInitialize(void) {
   digitalWrite(PIN_ROTARY_A,    HIGH);
   digitalWrite(PIN_ROTARY_B,    HIGH);
   digitalWrite(PIN_ROTARY_PUSH, HIGH);
-
-  rotaryEncoderInitialized = true;
 }
 
 void rotaryEncoderHandler(void) {
-  if (! rotaryEncoderInitialized) rotaryEncoderInitialize();
-
   int8_t delta = readRotaryEncoder();
 
   if (delta) {
@@ -45,7 +40,7 @@ void rotaryEncoderHandler(void) {
       inProgress %= ROTARY_ENCODER_CLICK;
     }
   }
-  updateButton(digitalRead(PIN_ROTARY_PUSH));
+  updateButton(!digitalRead(PIN_ROTARY_PUSH));
 }
 
 int8_t readRotaryEncoder(void) {

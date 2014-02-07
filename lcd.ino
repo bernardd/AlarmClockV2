@@ -62,8 +62,6 @@ byte lcdSetup[] = {         // LCD command, delay time in milliseconds
   LCD_COMMAND_ENTRY_SET,     1   // increment mode, display shift off
 };
 
-byte lcdInitialised = false;
-
 void lcdInitialise(void) {
   pinMode(PIN_LCD_STROBE,    OUTPUT);
   pinMode(PIN_LCD_DATA,      OUTPUT);
@@ -79,8 +77,6 @@ void lcdInitialise(void) {
     lcdWrite(lcdSetup[index ++], false);
     delay(lcdSetup[index ++]);
   }
-
-  lcdInitialised = true;
 }
 
 void lcdState(byte state)
@@ -89,25 +85,14 @@ void lcdState(byte state)
 }
 
 void lcdHandler(void) {
-  if (! lcdInitialised) {
-    lcdInitialise();
-    lcdClear();
-  }
-  
-  for (int8_t i = topDisplayLine; i < topDisplayLine + DISPLAY_LINES; i++) {
-    int8_t screenLine = i-topDisplayLine;
-    renderLine(screenLine, i);
+  for (int8_t i = 0; i < DISPLAY_LINES; i++) {
+    int8_t displayLine = i + topDisplayLine;
+    renderLine(i, displayLine);
   }
 }
 
 void renderLine(int8_t screenLine, int8_t displayLine)
 {
-  Serial.print("lines: ");
-  Serial.print(topDisplayLine);
-  Serial.print(" ");
-  Serial.print(screenLine);
-  Serial.print(" ");
-  Serial.println(displayLine);
   lcdPosition(screenLine, 0);
   if (displayLine == Banner) {
     lcdWriteString("Hello               ");
@@ -156,12 +141,17 @@ void lcdWrite(
       output = (loop2 == 1) ?
        (output | LCD_ENABLE_HIGH) : (output & LCD_ENABLE_LOW);
 
+
       shiftOut(PIN_LCD_DATA, PIN_LCD_CLOCK, LSBFIRST, output);
       digitalWrite(PIN_LCD_STROBE, HIGH);
-      delayMicroseconds(10);
+      unsigned long start = micros();
+      rotaryEncoderHandler();
+      unsigned long delta = micros() - start;
+      if (delta < 10)
+        delayMicroseconds(10-delta);
       digitalWrite(PIN_LCD_STROBE,LOW);
     }
-delay(1);
+//delay(1); //WHY? Why is this here? The display seems to cope fine without it and it makes the render function hella slow...BJD
     output = value & 0x0F;                           // Least Significant Nibble
 
     if (dataFlag) {
@@ -188,7 +178,6 @@ void lcdPosition(
 
 void lcdWriteString(
   char message[]) {
-
   while (*message) lcdWrite((*message ++), true);
 }
 

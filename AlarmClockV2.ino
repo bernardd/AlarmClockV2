@@ -10,17 +10,16 @@ using namespace Command;
 
 void setup(void) {
   Serial.begin(DEFAULT_BAUD_RATE);
-
-  Events.addHandler(rotaryEncoderHandler,    1);  // Aim for < 1 ms
-  Events.addHandler(lcdHandler,           1000);  // Aim for 1000 ms
-// Uses expensive floating point - leave out for now:
-//  Events.addHandler(temperatureHandler,   1000);  // Aim for 250 ms
+  
+  rotaryEncoderInitialize();
+  lcdInitialise();
+  lcdClear();
 
   printFreeRam();
 }
 
 void loop(void) {
-  Events.loop();
+  lcdHandler();
 }
 
 /* ------------------------------------------------------------------------- */

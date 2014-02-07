@@ -6,22 +6,19 @@
 
 uiLine activeLine = Time;
 byte activeCol = 0;
-uiState currentState = Off;
+uiState currentState = Menu;
 uiLine topDisplayLine = Banner;
 byte lastButtonState = false;
 uint32_t flashTimer;
 
-void updateButton(byte clicked)
+void updateButton(byte pressed)
 {
-  if (clicked == lastButtonState) {
+  if (pressed == lastButtonState) {
     return;
-  } else if (!clicked) {
-    lastButtonState = false;
-    return;
-  } else {
-    lastButtonState = true;
-    handleClick();
+  } else if (pressed) {
+    handlePress();
   }
+  lastButtonState = pressed;
 }
 
 void updateUI(int8_t clicks)
@@ -37,9 +34,9 @@ void updateUI(int8_t clicks)
       activeLine = (uiLine)(newLine % NUM_MENU_LINES);
       
       if (activeLine-DISPLAY_LINES >= topDisplayLine)
-        topDisplayLine = (uiLine)(activeLine-DISPLAY_LINES);
+        topDisplayLine = (uiLine)(activeLine-DISPLAY_LINES+1);
       else if (topDisplayLine+1 > activeLine)
-        topDisplayLine = (uiLine)(activeLine+1);
+        topDisplayLine = (uiLine)(activeLine-1);
         
       break;
     case Item:
@@ -48,7 +45,7 @@ void updateUI(int8_t clicks)
   }
 }
 
-void handleClick()
+void handlePress()
 {
   switch (currentState) {
     case Off:
@@ -67,7 +64,7 @@ void handleClick()
           lcdState(false);
           activeLine = Time;
           activeCol = 0;
-          topDisplayLine = Time;
+          topDisplayLine = Banner;
           currentState = Off;
           break;
       }
