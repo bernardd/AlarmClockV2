@@ -35,6 +35,9 @@
  *   +--------------------------------------------+
  */
 
+#include <Wire.h>
+#include <DS1307new.h>
+
 // LCD pin bit-patterns, output from MC14094 -> LCD KS0066 input
 #define LCD_ENABLE_HIGH 0x10  // MC14094 Q4 -> LCD E
 #define LCD_ENABLE_LOW  0xEF  //   Enable (high) / Disable (low)
@@ -85,19 +88,48 @@ void lcdState(byte state)
 }
 
 void lcdHandler(void) {
+  RTC.getTime();
+  lcdPosition(0, 0);
+  const byte renderOrder[] = {0, 2, 1, 3};
   for (int8_t i = 0; i < DISPLAY_LINES; i++) {
-    int8_t displayLine = i + topDisplayLine;
-    renderLine(i, displayLine);
+    int8_t   displayLine = renderOrder[i] + topDisplayLine;
+    renderLine(renderOrder[i], displayLine);
   }
+}
+
+void write2(uint16_t n, char pad)
+{
+  if (n < 10)
+    lcdWrite(pad, true);
+  lcdWriteNumber(n);
+}
+
+void writeTime(uint16_t h, uint16_t m, uint16_t s)
+{
+  write2(h, ' ');
+  lcdWriteString(":");
+  write2(m, '0');
+  lcdWriteString(":");
+  write2(s, '0');
+}
+
+void writeDate(uint16_t d, uint16_t m, uint16_t y)
+{
+  write2(d, ' ');
+  lcdWriteString("/");
+  write2(m, '0');
+  lcdWriteString("/");
+  lcdWriteNumber(y);
 }
 
 void renderLine(int8_t screenLine, int8_t displayLine)
 {
-  lcdPosition(screenLine, 0);
   if (displayLine == Banner) {
     lcdWriteString("Hello               ");
     return;
   }
+  
+  Serial.println(activeLine);
   if (displayLine == activeLine)
     lcdWriteString(">");
   else
@@ -105,13 +137,17 @@ void renderLine(int8_t screenLine, int8_t displayLine)
     
   switch (displayLine) {
     case Time:
-      lcdWriteString("Time:  15:15:15    ");
+      lcdWriteString("Time:  ");
+      writeTime(RTC.hour, RTC.minute, RTC.second);
+      lcdWriteString("    ");
       break;
     case Alarm:
       lcdWriteString("Alarm: 14:14:14    ");
       break;
     case Date:
-      lcdWriteString("Date:  28/12/1977  ");
+      lcdWriteString("Date:  ");
+      writeDate(RTC.day, RTC.month, RTC.year);
+      lcdWriteString("  ");
       break;
     case Screen:
       lcdWriteString("Turn Display Off   ");

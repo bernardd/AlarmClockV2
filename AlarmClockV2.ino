@@ -3,8 +3,7 @@
 #include <AikoCommands.h>
 #include <AikoEvents.h>
 
-using namespace Aiko;
-using namespace Command;
+#define LED_PIN 11
 
 #include "aiko_pebble_v2.h"
 
@@ -14,6 +13,9 @@ void setup(void) {
   rotaryEncoderInitialize();
   lcdInitialise();
   lcdClear();
+
+  pinMode(LED_PIN, OUTPUT);
+  digitalWrite(LED_PIN, LOW);
 
   printFreeRam();
 }
