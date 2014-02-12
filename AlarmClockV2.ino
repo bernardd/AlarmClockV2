@@ -24,9 +24,22 @@ void setup(void) {
   printFreeRam();
 }
 
+byte alarmState = 0;
+
 void loop(void) {
+  int start = millis();
   RTC.getTime();
   lcdHandler();
+  byte alarmOn = checkAlarm();
+
+  if (alarmOn && !alarmState)
+    digitalWrite(LED_PIN, HIGH);
+  else if (!alarmOn && alarmState)
+    digitalWrite(LED_PIN, LOW);
+
+  alarmState = alarmOn;
+  int end = millis();
+  Serial.println(end-start);
 }
 
 /* ------------------------------------------------------------------------- */

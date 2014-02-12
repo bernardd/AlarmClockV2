@@ -99,9 +99,11 @@ void lcdHandler(void) {
   }
 }
 
+#define FLASH_OFF ((millis() % (FLASH_INTERVAL * 2)) > FLASH_INTERVAL)
+
 void write2(uint16_t n, char pad, byte flash)
 {
-  if (flash && ((millis() % (FLASH_INTERVAL * 2)) > FLASH_INTERVAL)) {
+  if (flash && FLASH_OFF) {
     lcdWriteString("  ");
     return;
   }
@@ -114,24 +116,36 @@ void write2(uint16_t n, char pad, byte flash)
     lcdWriteNumber(n);
 }
 
+// This one blythley assumes that the year will always be 4 digits
+void write4(uint16_t n, byte flash)
+{
+  if (flash && FLASH_OFF)
+    lcdWriteString("    ");
+  else
+    lcdWriteNumber(n);
+}
+
+#define FLASH_COL(n) (flash && activeCol == n)
+
 void writeTime(hms *t, byte flash)
 {
-  write2(t->h, ' ', (flash && activeCol == 1));
+  write2(t->h, ' ', FLASH_COL(1));
   lcdWriteString(":");
-  write2(t->m, '0', (flash && activeCol == 2));
+  write2(t->m, '0', FLASH_COL(2));
   lcdWriteString(":");
-  write2(t->s, '0', (flash && activeCol == 3));
+  write2(t->s, '0', FLASH_COL(3));
 }
 
 void writeDate(uint16_t d, uint16_t m, uint16_t y, byte flash)
 {
-  write2(d, ' ', (flash && activeCol == 1));
+  write2(d, ' ', FLASH_COL(1));
   lcdWriteString("/");
-  write2(m, '0', (flash && activeCol == 2));
+  write2(m, '0', FLASH_COL(2));
   lcdWriteString("/");
-  lcdWriteNumber(y, (flash && activeCol == 3));
+  write4(y, FLASH_COL(3));
 }
 
+#define FLASH_LINE (curentState == Item && activeLine == displayLine);
 void renderLine(int8_t screenLine, int8_t displayLine)
 {
   if (displayLine == Banner) {
@@ -144,21 +158,22 @@ void renderLine(int8_t screenLine, int8_t displayLine)
   else
     lcdWriteString(" ");
       
+  byte flash = (currentState == Item && activeLine == displayLine);
   switch (displayLine) {
     case Time:
       lcdWriteString("Time:  ");
       loadTime(&time);
-      writeTime(&time, (currentState == Item && activeLine == displayLine));
+      writeTime(&time, flash);
       lcdWriteString("    ");
       break;
     case Alarm:
       lcdWriteString("Alarm: ");
-      writeTime(&alarm, (currentState == Item && activeLine == displayLine));
+      writeTime(&alarm, flash);
       lcdWriteString("    ");
       break;
     case Date:
       lcdWriteString("Date:  ");
-      writeDate(RTC.day, RTC.month, RTC.year, (currentState == Item && activeLine == displayLine));
+      writeDate(RTC.day, RTC.month, RTC.year, flash);
       lcdWriteString("  ");
       break;
     case Screen:
@@ -169,8 +184,6 @@ void renderLine(int8_t screenLine, int8_t displayLine)
       break;
   }
 }
-
-    
 
 void lcdWrite(
   byte value,

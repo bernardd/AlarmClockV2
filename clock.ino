@@ -28,15 +28,45 @@ void loadTime(hms *t)
 
 void saveTime(hms *t)
 {
-  RTC.stopClock();
-  RTC.hour = t->h;
-  RTC.minute = t->m;
-  RTC.second = t->s;
+  RTC.fillByHMS(t->h, t->m, t->s);
   RTC.setTime();
   RTC.startClock();
+  RTC.getTime();
+}
+
+void loadDate(hms *t)
+{
+  t->h = RTC.day;
+  t->m = RTC.month;
+  t->s = RTC.year;
+}
+
+void saveDate(hms *t)
+{
+  RTC.fillByYMD(t->s, t->m, t->h);
+  RTC.setTime();
+  RTC.startClock();
+  RTC.getTime();
+}
+
+uint32_t hmsInSec(hms *t)
+{
+  return t->h * 3600 + t->m * 60 + t->s;
 }
 
 byte checkAlarm()
 {
-  return false;
+  hms t;
+  loadTime(&t);
+  int32_t secs = hmsInSec(&t);
+  int32_t aSecs = hmsInSec(&alarm);
+  int32_t delta = secs - aSecs;
+  
+  while (delta < 0)
+    delta += (3600*24);
+  
+  if (delta < 3600)
+    return true;
+  else
+    return false;
 }

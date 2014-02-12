@@ -56,6 +56,7 @@ void handlePress()
       switch (activeLine) {
         case Time:
         case Alarm:
+        case Date:
         case Brightness:
           activeCol = 1;
           currentState = Item;
@@ -73,6 +74,7 @@ void handlePress()
       switch (activeLine) {
         case Time:
         case Alarm:
+        case Date:
           activeCol = (activeCol+1) % 4;
           if (activeCol == 0)
             currentState = Menu;
@@ -106,11 +108,38 @@ void adjustClock(int8_t clicks, hms *t)
   }
 }
 
+uint16_t daysInMonth(uint16_t month)
+{
+  switch (month) {
+    case 2:
+      return 29;
+    case 4:
+    case 6:
+    case 9:
+    case 11:
+      return 30;
+    default:
+      return 31;
+  }
+}
+
+void adjustDate(int8_t clicks, hms *t)
+{
+  uint16_t wrapAt;
+  switch (activeCol) {
+    case 1:
+      wrapAt = daysInMonth(t->m);
+      adjust(clicks, &t->h, wrapAt); break;
+    case 2: adjust(clicks, &t->m, 12); break;
+    case 3: adjust(clicks, &t->s, 2100); break;
+  }
+}
+
 void updateItem(int8_t clicks)
 {
+  hms t;
   switch (activeLine) {
     case Time:
-      hms t;
       loadTime(&t);
       adjustClock(clicks, &t);
       saveTime(&t);
@@ -118,6 +147,11 @@ void updateItem(int8_t clicks)
     case Alarm:
       adjustClock(clicks, &alarm);
       saveAlarm();
+      break;
+    case Date:
+      loadDate(&t);
+      adjustDate(clicks, &t);
+      saveDate(&t);
       break;
   }
    
