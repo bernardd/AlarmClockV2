@@ -153,6 +153,10 @@ void updateItem(int8_t clicks)
       adjustDate(clicks, &t);
       saveDate(&t);
       break;
+    case Brightness:
+      backlightLevel = constrain(backlightLevel + clicks, 1, BACKLIGHT_STEPS);
+      setBacklight();
+      break;
   }
    
 

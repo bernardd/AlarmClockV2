@@ -27,7 +27,6 @@ void setup(void) {
 byte alarmState = 0;
 
 void loop(void) {
-  int start = millis();
   RTC.getTime();
   lcdHandler();
   byte alarmOn = checkAlarm();
@@ -38,8 +37,6 @@ void loop(void) {
     digitalWrite(LED_PIN, LOW);
 
   alarmState = alarmOn;
-  int end = millis();
-  Serial.println(end-start);
 }
 
 /* ------------------------------------------------------------------------- */

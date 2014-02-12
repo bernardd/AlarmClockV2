@@ -64,8 +64,14 @@ byte lcdSetup[] = {         // LCD command, delay time in milliseconds
 };
 
 hms time;
+byte backlightLevel = 2;
 
 #define FLASH_INTERVAL 200
+
+void setBacklight()
+{
+  analogWrite(PIN_LCD_BACKLIGHT, backlightLevel * BACKLIGHT_INC);
+}
 
 void lcdInitialise(void) {
   pinMode(PIN_LCD_STROBE,    OUTPUT);
@@ -73,7 +79,7 @@ void lcdInitialise(void) {
   pinMode(PIN_LCD_CLOCK,     OUTPUT);
   pinMode(PIN_LCD_BACKLIGHT, OUTPUT);
 
-  analogWrite(PIN_LCD_BACKLIGHT, DEFAULT_LCD_BACKLIGHT);
+  setBacklight();
 
   byte length = sizeof(lcdSetup) / sizeof(*lcdSetup);
   byte index = 0;
@@ -145,6 +151,20 @@ void writeDate(uint16_t d, uint16_t m, uint16_t y, byte flash)
   write4(y, FLASH_COL(3));
 }
 
+void writeBrightness(byte flash)
+{
+  if (flash && FLASH_OFF) {
+    lcdWriteString("       ");
+    return;
+  }
+  
+  for (int i=0; i < backlightLevel; i++)
+    lcdWriteString("*");
+  for (int i=backlightLevel; i < BACKLIGHT_STEPS; i++)
+    lcdWriteString(" ");
+  
+}
+
 #define FLASH_LINE (curentState == Item && activeLine == displayLine);
 void renderLine(int8_t screenLine, int8_t displayLine)
 {
@@ -180,7 +200,8 @@ void renderLine(int8_t screenLine, int8_t displayLine)
       lcdWriteString("Turn Display Off   ");
       break;
     case Brightness:
-      lcdWriteString("Brightness: ***    ");
+      lcdWriteString("Brightness: ");
+      writeBrightness(flash);
       break;
   }
 }

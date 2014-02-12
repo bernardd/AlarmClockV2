@@ -18,6 +18,9 @@
 
 // LCD backlight intensity
 const int DEFAULT_LCD_BACKLIGHT = 80;
+const int BACKLIGHT_INC = 36;
+const int BACKLIGHT_STEPS = 7;
+
 const int DISPLAY_LINES = 4;
 
 const int ROTARY_ENCODER_CLICK = 2;
@@ -63,7 +66,7 @@ extern byte temperatureFraction;
 
 const int PIN_ANALOG_LIGHT       =  1;  // In:  Light sensor TEMT6000
 
-extern byte lightValue;
+extern byte backlightLevel;
 
 // Nintendo DS touch panel
 const int PIN_ANALOG_X1          =  2;  // In/Out: Touch panel X-axis left
