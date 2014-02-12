@@ -10,6 +10,8 @@
  */
 
 // Allocate strings in Flash program memory to save RAM
+#ifndef __AIKO_PEBBLE_V2_H__
+#define __AIKO_PEBBLE_V2_H__
 
 #include <avr/pgmspace.h>
 #define PROGSTRING(name) static const prog_char name[] PROGMEM
@@ -96,3 +98,13 @@ extern uiLine topDisplayLine;
 extern uiState currentState;
 extern byte lastButtonState;
 extern uint32_t flashTimer;
+
+typedef struct {
+  uint16_t h;
+  uint16_t m;
+  uint16_t s;
+} hms;
+
+extern hms alarm;
+
+#endif __AIKO_PEBBLE_V2_H__

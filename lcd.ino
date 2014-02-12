@@ -35,8 +35,6 @@
  *   +--------------------------------------------+
  */
 
-#include <Wire.h>
-#include <DS1307new.h>
 
 // LCD pin bit-patterns, output from MC14094 -> LCD KS0066 input
 #define LCD_ENABLE_HIGH 0x10  // MC14094 Q4 -> LCD E
@@ -65,6 +63,10 @@ byte lcdSetup[] = {         // LCD command, delay time in milliseconds
   LCD_COMMAND_ENTRY_SET,     1   // increment mode, display shift off
 };
 
+hms time;
+
+#define FLASH_INTERVAL 200
+
 void lcdInitialise(void) {
   pinMode(PIN_LCD_STROBE,    OUTPUT);
   pinMode(PIN_LCD_DATA,      OUTPUT);
@@ -88,7 +90,7 @@ void lcdState(byte state)
 }
 
 void lcdHandler(void) {
-  RTC.getTime();
+  loadTime(&time);
   lcdPosition(0, 0);
   const byte renderOrder[] = {0, 2, 1, 3};
   for (int8_t i = 0; i < DISPLAY_LINES; i++) {
@@ -97,29 +99,37 @@ void lcdHandler(void) {
   }
 }
 
-void write2(uint16_t n, char pad)
+void write2(uint16_t n, char pad, byte flash)
 {
+  if (flash && ((millis() % (FLASH_INTERVAL * 2)) > FLASH_INTERVAL)) {
+    lcdWriteString("  ");
+    return;
+  }
+ 
   if (n < 10)
     lcdWrite(pad, true);
-  lcdWriteNumber(n);
+  if (n > 99)
+    lcdWriteString("--");
+  else
+    lcdWriteNumber(n);
 }
 
-void writeTime(uint16_t h, uint16_t m, uint16_t s)
+void writeTime(hms *t, byte flash)
 {
-  write2(h, ' ');
+  write2(t->h, ' ', (flash && activeCol == 1));
   lcdWriteString(":");
-  write2(m, '0');
+  write2(t->m, '0', (flash && activeCol == 2));
   lcdWriteString(":");
-  write2(s, '0');
+  write2(t->s, '0', (flash && activeCol == 3));
 }
 
-void writeDate(uint16_t d, uint16_t m, uint16_t y)
+void writeDate(uint16_t d, uint16_t m, uint16_t y, byte flash)
 {
-  write2(d, ' ');
+  write2(d, ' ', (flash && activeCol == 1));
   lcdWriteString("/");
-  write2(m, '0');
+  write2(m, '0', (flash && activeCol == 2));
   lcdWriteString("/");
-  lcdWriteNumber(y);
+  lcdWriteNumber(y, (flash && activeCol == 3));
 }
 
 void renderLine(int8_t screenLine, int8_t displayLine)
@@ -129,24 +139,26 @@ void renderLine(int8_t screenLine, int8_t displayLine)
     return;
   }
   
-  Serial.println(activeLine);
   if (displayLine == activeLine)
     lcdWriteString(">");
   else
     lcdWriteString(" ");
-    
+      
   switch (displayLine) {
     case Time:
       lcdWriteString("Time:  ");
-      writeTime(RTC.hour, RTC.minute, RTC.second);
+      loadTime(&time);
+      writeTime(&time, (currentState == Item && activeLine == displayLine));
       lcdWriteString("    ");
       break;
     case Alarm:
-      lcdWriteString("Alarm: 14:14:14    ");
+      lcdWriteString("Alarm: ");
+      writeTime(&alarm, (currentState == Item && activeLine == displayLine));
+      lcdWriteString("    ");
       break;
     case Date:
       lcdWriteString("Date:  ");
-      writeDate(RTC.day, RTC.month, RTC.year);
+      writeDate(RTC.day, RTC.month, RTC.year, (currentState == Item && activeLine == displayLine));
       lcdWriteString("  ");
       break;
     case Screen:

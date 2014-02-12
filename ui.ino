@@ -73,12 +73,9 @@ void handlePress()
       switch (activeLine) {
         case Time:
         case Alarm:
-          if (activeCol == 0) {
+          activeCol = (activeCol+1) % 4;
+          if (activeCol == 0)
             currentState = Menu;
-            activeCol = 0;
-          } else {
-            activeCol = (activeCol+1) % 3;
-          }
           break;
         case Brightness:
           currentState = Menu;
@@ -88,7 +85,42 @@ void handlePress()
   }
 }
 
-void updateItem(uint8_t clicks)
+void adjust(int8_t clicks, uint16_t *n, uint16_t wrapAt)
 {
-  
+  int16_t tmp = *n + clicks;
+  while (tmp < 0)
+    tmp += wrapAt-1;
+    
+  while (tmp >= wrapAt)
+    tmp -= wrapAt;
+    
+  *n = tmp;
 }
+
+void adjustClock(int8_t clicks, hms *t)
+{
+  switch (activeCol) {
+    case 1: adjust(clicks, &t->h, 24); break;
+    case 2: adjust(clicks, &t->m, 60); break;
+    case 3: adjust(clicks, &t->s, 60); break;
+  }
+}
+
+void updateItem(int8_t clicks)
+{
+  switch (activeLine) {
+    case Time:
+      hms t;
+      loadTime(&t);
+      adjustClock(clicks, &t);
+      saveTime(&t);
+      break;
+    case Alarm:
+      adjustClock(clicks, &alarm);
+      saveAlarm();
+      break;
+  }
+   
+
+}
+

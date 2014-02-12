@@ -28,14 +28,9 @@ void rotaryEncoderHandler(void) {
   int8_t delta = readRotaryEncoder();
 
   if (delta) {
-    Serial.print("Rotary encoder delta: ");
-    Serial.println(delta);
-
     inProgress += delta;
     if (abs(inProgress) >= ROTARY_ENCODER_CLICK) {
       int8_t clicks = inProgress / ROTARY_ENCODER_CLICK;
-      Serial.print("Rotary encoder clicks: ");
-      Serial.println(clicks);
       updateUI(clicks);
       inProgress %= ROTARY_ENCODER_CLICK;
     }

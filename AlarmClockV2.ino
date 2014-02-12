@@ -1,7 +1,9 @@
 #include <OneWire.h>
 
 #include <AikoCommands.h>
-#include <AikoEvents.h>
+//#include <AikoEvents.h>
+#include <Wire.h>
+#include <DS1307new.h>
 
 #define LED_PIN 11
 
@@ -13,6 +15,8 @@ void setup(void) {
   rotaryEncoderInitialize();
   lcdInitialise();
   lcdClear();
+  
+  loadAlarm();
 
   pinMode(LED_PIN, OUTPUT);
   digitalWrite(LED_PIN, LOW);
@@ -21,6 +25,7 @@ void setup(void) {
 }
 
 void loop(void) {
+  RTC.getTime();
   lcdHandler();
 }
 
