@@ -49,9 +49,9 @@ void saveDate(hms *t)
   RTC.getTime();
 }
 
-uint32_t hmsInSec(hms *t)
+int32_t hmsInSec(hms *t)
 {
-  return t->h * 3600 + t->m * 60 + t->s;
+  return (int32_t)t->h * 3600 + (int32_t)t->m * 60 + (int32_t)t->s;
 }
 
 byte checkAlarm()
