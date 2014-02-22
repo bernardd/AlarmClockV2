@@ -22,6 +22,7 @@ const int BACKLIGHT_INC = 36;
 const int BACKLIGHT_STEPS = 7;
 
 const int DISPLAY_LINES = 4;
+const int DISPLAY_COLS = 20;
 
 const int ROTARY_ENCODER_CLICK = 2;
 

@@ -169,7 +169,12 @@ void writeBrightness(byte flash)
 void renderLine(int8_t screenLine, int8_t displayLine)
 {
   if (displayLine == Banner) {
-    lcdWriteString("Hello               ");
+    char *msg = getDayEvent();
+    int l = strlen(msg);
+    lcdWriteString(msg);
+    int spaces = DISPLAY_COLS-l;
+    for (int i=0; i<spaces; i++)
+      lcdWriteString(" ");
     return;
   }
   
