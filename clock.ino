@@ -51,7 +51,7 @@ void saveDate(hms *t)
 
 int32_t hmsInSec(hms *t)
 {
-  return (int32_t)t->h * 3600 + (int32_t)t->m * 60 + (int32_t)t->s;
+  return (int32_t)t->h * 3600L + (int32_t)t->m * 60L + (int32_t)t->s;
 }
 
 byte checkAlarm()
@@ -63,8 +63,8 @@ byte checkAlarm()
   int32_t delta = secs - aSecs;
   
   while (delta < 0)
-    delta += (3600*24);
-  
+    delta += (3600L*24L);
+
   if (delta < 3600)
     return true;
   else
